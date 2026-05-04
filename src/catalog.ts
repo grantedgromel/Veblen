@@ -31,6 +31,31 @@ export interface AlertRule {
   last: string
 }
 
+export interface RetailerFeedItem {
+  id: string
+  brand: string
+  title: string
+  subtitle: string
+  price: number
+  originalPrice: number
+  discount: number
+  badge: string | null
+  color: string | null
+  colorCount: number
+  image: string
+  url: string
+}
+
+export interface RetailerFeed {
+  brand: string
+  source: string
+  sourceUrl: string
+  collection: string
+  scrapedAt: string
+  itemCount: number
+  items: RetailerFeedItem[]
+}
+
 export const gradeOrder: Grade[] = ['excellent', 'great', 'good', 'fair', 'poor']
 
 export const gradeLabels: Record<Grade, string> = {

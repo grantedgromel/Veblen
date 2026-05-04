@@ -9,9 +9,11 @@ import {
   type AlertRule,
   type CatalogItem,
   type Grade,
+  type RetailerFeed,
   type SizeKind,
   type SizeStatus,
 } from './catalog'
+import { nikeFeed } from './generated/nikeFeed'
 
 type Page = 'browse' | 'product' | 'method' | 'saved'
 type BrowseGradeFilter = 'all' | 'excellent' | 'great' | 'good'
@@ -174,6 +176,7 @@ function App() {
       <main>
         {page === 'browse' ? (
           <BrowseScreen
+            brandFeed={nikeFeed}
             chips={chips}
             filters={filters}
             items={visibleItems}
@@ -279,6 +282,7 @@ function ColumnIcon({ columns }: { columns: number }) {
 }
 
 interface BrowseScreenProps {
+  brandFeed: RetailerFeed
   chips: ActiveChip[]
   filters: BrowseFilters
   items: CatalogItem[]
@@ -290,6 +294,7 @@ interface BrowseScreenProps {
 }
 
 function BrowseScreen({
+  brandFeed,
   chips,
   filters,
   items,
@@ -311,6 +316,8 @@ function BrowseScreen({
           decorative discounts and affiliate-incentivized noise.
         </p>
       </section>
+
+      <LiveBrandSection feed={brandFeed} />
 
       <section className="filter-bar" aria-label="Catalog filters">
         <label className="filter search">
@@ -397,6 +404,60 @@ function BrowseScreen({
 
       <Colophon />
     </div>
+  )
+}
+
+function LiveBrandSection({ feed }: { feed: RetailerFeed }) {
+  return (
+    <section className="brand-wire">
+      <div className="section-rule">
+        <h2>Live Brand Wire</h2>
+        <span className="meta">
+          {feed.brand} / {feed.itemCount} styles / scraped {formatTimestamp(feed.scrapedAt)}
+        </span>
+      </div>
+
+      <div className="brand-wire-copy">
+        <p>
+          This is the first real retailer feed wired into the app. These products are scraped directly from{' '}
+          <a className="inline-link" href={feed.sourceUrl} target="_blank" rel="noreferrer">
+            {feed.brand}'s {feed.collection}
+          </a>{' '}
+          page and kept separate from the editorial grades until the scoring logic is automated.
+        </p>
+      </div>
+
+      <div className="brand-feed-grid">
+        {feed.items.map((item) => (
+          <article key={item.id} className="brand-feed-card">
+            <div className="brand-feed-media">
+              <img src={item.image} alt={`${item.title} ${item.subtitle}`} loading="lazy" />
+              {item.badge ? <span className="brand-feed-badge">{item.badge}</span> : null}
+            </div>
+
+            <div className="brand-feed-body">
+              <div className="brand-feed-kicker">
+                <span>{feed.brand}</span>
+                <span>{item.colorCount} colors</span>
+              </div>
+              <h3>{item.title}</h3>
+              <p className="brand-feed-subtitle">{item.subtitle}</p>
+              <p className="brand-feed-color">{item.color ?? 'Colorway not listed'}</p>
+
+              <div className="brand-feed-price-row">
+                <strong>{formatMoney(item.price)}</strong>
+                {item.originalPrice > item.price ? <span>{formatMoney(item.originalPrice)}</span> : null}
+                <em>{item.discount > 0 ? `${item.discount}% off` : 'Full price'}</em>
+              </div>
+
+              <a className="brand-feed-link" href={item.url} target="_blank" rel="noreferrer">
+                Open on Nike
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -1289,6 +1350,21 @@ function getRelatedItems(item: CatalogItem) {
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'auto' })
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function formatTimestamp(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
 }
 
 export default App
