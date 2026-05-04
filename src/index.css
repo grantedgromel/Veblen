@@ -886,12 +886,44 @@ button {
   margin-top: 1.6rem;
 }
 
+.brand-wire-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.brand-wire-panel {
+  min-width: 0;
+}
+
 .brand-wire-copy {
   max-width: 52rem;
   margin-bottom: 1rem;
   color: var(--ink-2);
   font-size: 0.96rem;
   line-height: 1.7;
+}
+
+.brand-wire-copy p {
+  margin: 0 0 0.6rem;
+}
+
+.brand-wire-rule {
+  margin-top: 0;
+}
+
+.brand-wire-rule h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.brand-wire-note {
+  margin: -0.15rem 0 1rem;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .inline-link {
@@ -907,6 +939,25 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   border-top: 1px solid var(--ink);
+}
+
+.brand-wire-empty {
+  max-width: 42rem;
+  padding: 1rem 0 1.4rem;
+  border-top: 1px solid var(--ink);
+  color: var(--ink-2);
+}
+
+.brand-wire-empty h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.brand-wire-empty p {
+  margin: 0;
+  line-height: 1.7;
 }
 
 .brand-feed-card {

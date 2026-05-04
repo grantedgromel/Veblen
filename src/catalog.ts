@@ -52,6 +52,9 @@ export interface RetailerFeed {
   sourceUrl: string
   collection: string
   scrapedAt: string
+  qualifyingThreshold: number
+  totalScanned: number
+  maxDiscountSeen: number
   itemCount: number
   items: RetailerFeedItem[]
 }

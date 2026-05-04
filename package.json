@@ -8,7 +8,13 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "scrape:nike": "node scripts/scrape-nike.mjs"
+    "scrape:nike": "node scripts/scrape-nike.mjs",
+    "scrape:patagonia": "node scripts/scrape-patagonia.mjs",
+    "scrape:faherty": "node scripts/scrape-faherty.mjs",
+    "scrape:outerknown": "node scripts/scrape-outerknown.mjs",
+    "scrape:corridor": "node scripts/scrape-corridor.mjs",
+    "scrape:boxraw": "node scripts/scrape-boxraw.mjs",
+    "scrape:live": "npm run scrape:nike && npm run scrape:patagonia && npm run scrape:faherty && npm run scrape:outerknown && npm run scrape:corridor && npm run scrape:boxraw"
   },
   "dependencies": {
     "react": "^19.2.5",

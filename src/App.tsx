@@ -13,7 +13,12 @@ import {
   type SizeKind,
   type SizeStatus,
 } from './catalog'
+import { boxrawFeed } from './generated/boxrawFeed'
+import { corridorFeed } from './generated/corridorFeed'
+import { fahertyFeed } from './generated/fahertyFeed'
 import { nikeFeed } from './generated/nikeFeed'
+import { outerknownFeed } from './generated/outerknownFeed'
+import { patagoniaFeed } from './generated/patagoniaFeed'
 
 type Page = 'browse' | 'product' | 'method' | 'saved'
 type BrowseGradeFilter = 'all' | 'excellent' | 'great' | 'good'
@@ -80,6 +85,17 @@ const defaultFilters: BrowseFilters = {
   natural: 'mostly-natural',
   discount: '50',
 }
+
+const liveFeeds = [patagoniaFeed, fahertyFeed, outerknownFeed, corridorFeed, nikeFeed, boxrawFeed].sort(
+  (left, right) => {
+    const itemGap = right.itemCount - left.itemCount
+    if (itemGap !== 0) {
+      return itemGap
+    }
+
+    return left.brand.localeCompare(right.brand)
+  },
+)
 
 function App() {
   const [page, setPage] = useState<Page>('browse')
@@ -176,7 +192,7 @@ function App() {
       <main>
         {page === 'browse' ? (
           <BrowseScreen
-            brandFeed={nikeFeed}
+            brandFeeds={liveFeeds}
             chips={chips}
             filters={filters}
             items={visibleItems}
@@ -282,7 +298,7 @@ function ColumnIcon({ columns }: { columns: number }) {
 }
 
 interface BrowseScreenProps {
-  brandFeed: RetailerFeed
+  brandFeeds: RetailerFeed[]
   chips: ActiveChip[]
   filters: BrowseFilters
   items: CatalogItem[]
@@ -294,7 +310,7 @@ interface BrowseScreenProps {
 }
 
 function BrowseScreen({
-  brandFeed,
+  brandFeeds,
   chips,
   filters,
   items,
@@ -317,7 +333,7 @@ function BrowseScreen({
         </p>
       </section>
 
-      <LiveBrandSection feed={brandFeed} />
+      <LiveBrandSection feeds={brandFeeds} />
 
       <section className="filter-bar" aria-label="Catalog filters">
         <label className="filter search">
@@ -407,57 +423,99 @@ function BrowseScreen({
   )
 }
 
-function LiveBrandSection({ feed }: { feed: RetailerFeed }) {
+function LiveBrandSection({ feeds }: { feeds: RetailerFeed[] }) {
   return (
     <section className="brand-wire">
       <div className="section-rule">
         <h2>Live Brand Wire</h2>
-        <span className="meta">
-          {feed.brand} / {feed.itemCount} styles / scraped {formatTimestamp(feed.scrapedAt)}
-        </span>
+        <span className="meta">{feeds.length} monitored retailers / 50%+ only</span>
       </div>
 
       <div className="brand-wire-copy">
         <p>
-          This is the first real retailer feed wired into the app. These products are scraped directly from{' '}
-          <a className="inline-link" href={feed.sourceUrl} target="_blank" rel="noreferrer">
-            {feed.brand}'s {feed.collection}
-          </a>{' '}
-          page and kept separate from the editorial grades until the scoring logic is automated.
+          Each wire scans a brand&apos;s sale section directly and keeps only products marked down at least{' '}
+          <strong>50%</strong>. When the retailer exposes the preview image cleanly, we use the real product photo,
+          live sale price, markdown, and outbound PDP link.
+        </p>
+        <p>
+          Patagonia renders sale tiles directly in HTML, while Faherty, Outerknown, Corridor, and Boxraw expose
+          official Shopify collection data. AllSaints is still returning a 403 bot wall to plain fetch requests, and
+          Boxraw&apos;s current men&apos;s sale collection is legitimately empty, so both cases are shown honestly instead
+          of padded with non-qualifying items.
         </p>
       </div>
 
-      <div className="brand-feed-grid">
-        {feed.items.map((item) => (
-          <article key={item.id} className="brand-feed-card">
-            <div className="brand-feed-media">
-              <img src={item.image} alt={`${item.title} ${item.subtitle}`} loading="lazy" />
-              {item.badge ? <span className="brand-feed-badge">{item.badge}</span> : null}
-            </div>
-
-            <div className="brand-feed-body">
-              <div className="brand-feed-kicker">
-                <span>{feed.brand}</span>
-                <span>{item.colorCount} colors</span>
-              </div>
-              <h3>{item.title}</h3>
-              <p className="brand-feed-subtitle">{item.subtitle}</p>
-              <p className="brand-feed-color">{item.color ?? 'Colorway not listed'}</p>
-
-              <div className="brand-feed-price-row">
-                <strong>{formatMoney(item.price)}</strong>
-                {item.originalPrice > item.price ? <span>{formatMoney(item.originalPrice)}</span> : null}
-                <em>{item.discount > 0 ? `${item.discount}% off` : 'Full price'}</em>
-              </div>
-
-              <a className="brand-feed-link" href={item.url} target="_blank" rel="noreferrer">
-                Open on Nike
-              </a>
-            </div>
-          </article>
+      <div className="brand-wire-list">
+        {feeds.map((feed) => (
+          <BrandFeedPanel key={`${feed.brand}-${feed.collection}`} feed={feed} />
         ))}
       </div>
     </section>
+  )
+}
+
+function BrandFeedPanel({ feed }: { feed: RetailerFeed }) {
+  return (
+    <article className="brand-wire-panel">
+      <div className="section-rule brand-wire-rule">
+        <h3>
+          {feed.brand} / {feed.collection}
+        </h3>
+        <span className="meta">
+          {feed.itemCount} qualifying styles / {feed.qualifyingThreshold}%+ only / scanned {feed.totalScanned}
+        </span>
+      </div>
+
+      <p className="brand-wire-note">
+        Source:{' '}
+        <a className="inline-link" href={feed.sourceUrl} target="_blank" rel="noreferrer">
+          {feed.source}
+        </a>{' '}
+        / Snapshot: {formatTimestamp(feed.scrapedAt)}
+      </p>
+
+      {feed.items.length > 0 ? (
+        <div className="brand-feed-grid">
+          {feed.items.map((item) => (
+            <article key={item.id} className="brand-feed-card">
+              <div className="brand-feed-media">
+                <img src={item.image} alt={`${item.title} ${item.subtitle}`} loading="lazy" />
+                {item.badge ? <span className="brand-feed-badge">{item.badge}</span> : null}
+              </div>
+
+              <div className="brand-feed-body">
+                <div className="brand-feed-kicker">
+                  <span>{feed.brand}</span>
+                  <span>{item.colorCount === 1 ? '1 color' : `${item.colorCount} colors`}</span>
+                </div>
+                <h3>{item.title}</h3>
+                <p className="brand-feed-subtitle">{item.subtitle}</p>
+                <p className="brand-feed-color">{item.color ?? 'Colorway not listed'}</p>
+
+                <div className="brand-feed-price-row">
+                  <strong>{formatMoney(item.price)}</strong>
+                  {item.originalPrice > item.price ? <span>{formatMoney(item.originalPrice)}</span> : null}
+                  <em>{item.discount}% off</em>
+                </div>
+
+                <a className="brand-feed-link" href={item.url} target="_blank" rel="noreferrer">
+                  Open on {feed.brand}
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="brand-wire-empty">
+          <h3>No qualifying {feed.brand} items right now.</h3>
+          <p>
+            The scraper scanned {feed.totalScanned} products in {feed.collection} and found nothing at{' '}
+            {feed.qualifyingThreshold}% off or higher. The strongest markdown currently visible in this section is{' '}
+            {feed.maxDiscountSeen}%.
+          </p>
+        </div>
+      )}
+    </article>
   )
 }
 
@@ -1353,17 +1411,21 @@ function scrollToTop() {
 }
 
 function formatMoney(value: number) {
+  const hasCents = !Number.isInteger(value)
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: hasCents ? 2 : 0,
   }).format(value)
 }
 
 function formatTimestamp(value: string) {
   return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   }).format(new Date(value))
 }
 
