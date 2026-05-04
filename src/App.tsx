@@ -333,7 +333,7 @@ function BrowseScreen({
         </p>
       </section>
 
-      <LiveBrandSection feeds={brandFeeds} />
+      <LiveInventorySection feeds={brandFeeds} />
 
       <section className="filter-bar" aria-label="Catalog filters">
         <label className="filter search">
@@ -423,60 +423,43 @@ function BrowseScreen({
   )
 }
 
-function LiveBrandSection({ feeds }: { feeds: RetailerFeed[] }) {
+function LiveInventorySection({ feeds }: { feeds: RetailerFeed[] }) {
+  const items = feeds
+    .flatMap((feed) => feed.items)
+    .sort((left, right) => right.discount - left.discount)
+  const totalScanned = feeds.reduce((sum, feed) => sum + feed.totalScanned, 0)
+  const latestSnapshot = feeds.reduce(
+    (latest, feed) => (feed.scrapedAt > latest ? feed.scrapedAt : latest),
+    '',
+  )
+
   return (
     <section className="brand-wire">
       <div className="section-rule">
-        <h2>Live Brand Wire</h2>
-        <span className="meta">{feeds.length} monitored retailers / 50%+ only</span>
+        <h2>Live Inventory</h2>
+        <span className="meta">
+          {items.length} qualifying styles / 50%+ only / scanned {totalScanned}
+        </span>
       </div>
 
       <div className="brand-wire-copy">
         <p>
-          Each wire scans a brand&apos;s sale section directly and keeps only products marked down at least{' '}
-          <strong>50%</strong>. When the retailer exposes the preview image cleanly, we use the real product photo,
-          live sale price, markdown, and outbound PDP link.
+          Veblen scans every monitored retailer&apos;s sale section directly and keeps only products marked down
+          at least <strong>50%</strong>. When the retailer exposes the preview image cleanly, we use the real
+          product photo, live sale price, markdown, and outbound PDP link.
         </p>
         <p>
-          Patagonia renders sale tiles directly in HTML, while Faherty, Outerknown, Corridor, and Boxraw expose
-          official Shopify collection data. AllSaints is still returning a 403 bot wall to plain fetch requests, and
-          Boxraw&apos;s current men&apos;s sale collection is legitimately empty, so both cases are shown honestly instead
-          of padded with non-qualifying items.
+          Listings below are pooled across retailers and sorted by markdown depth, so the deepest discounts
+          surface first regardless of which brand is running them.
         </p>
+        {latestSnapshot ? (
+          <p className="brand-wire-note">Latest snapshot: {formatTimestamp(latestSnapshot)}</p>
+        ) : null}
       </div>
 
-      <div className="brand-wire-list">
-        {feeds.map((feed) => (
-          <BrandFeedPanel key={`${feed.brand}-${feed.collection}`} feed={feed} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function BrandFeedPanel({ feed }: { feed: RetailerFeed }) {
-  return (
-    <article className="brand-wire-panel">
-      <div className="section-rule brand-wire-rule">
-        <h3>
-          {feed.brand} / {feed.collection}
-        </h3>
-        <span className="meta">
-          {feed.itemCount} qualifying styles / {feed.qualifyingThreshold}%+ only / scanned {feed.totalScanned}
-        </span>
-      </div>
-
-      <p className="brand-wire-note">
-        Source:{' '}
-        <a className="inline-link" href={feed.sourceUrl} target="_blank" rel="noreferrer">
-          {feed.source}
-        </a>{' '}
-        / Snapshot: {formatTimestamp(feed.scrapedAt)}
-      </p>
-
-      {feed.items.length > 0 ? (
+      {items.length > 0 ? (
         <div className="brand-feed-grid">
-          {feed.items.map((item) => (
+          {items.map((item) => (
             <article key={item.id} className="brand-feed-card">
               <div className="brand-feed-media">
                 <img src={item.image} alt={`${item.title} ${item.subtitle}`} loading="lazy" />
@@ -485,7 +468,7 @@ function BrandFeedPanel({ feed }: { feed: RetailerFeed }) {
 
               <div className="brand-feed-body">
                 <div className="brand-feed-kicker">
-                  <span>{feed.brand}</span>
+                  <span>{item.brand}</span>
                   <span>{item.colorCount === 1 ? '1 color' : `${item.colorCount} colors`}</span>
                 </div>
                 <h3>{item.title}</h3>
@@ -499,7 +482,7 @@ function BrandFeedPanel({ feed }: { feed: RetailerFeed }) {
                 </div>
 
                 <a className="brand-feed-link" href={item.url} target="_blank" rel="noreferrer">
-                  Open on {feed.brand}
+                  Open listing
                 </a>
               </div>
             </article>
@@ -507,15 +490,14 @@ function BrandFeedPanel({ feed }: { feed: RetailerFeed }) {
         </div>
       ) : (
         <div className="brand-wire-empty">
-          <h3>No qualifying {feed.brand} items right now.</h3>
+          <h3>No qualifying items right now.</h3>
           <p>
-            The scraper scanned {feed.totalScanned} products in {feed.collection} and found nothing at{' '}
-            {feed.qualifyingThreshold}% off or higher. The strongest markdown currently visible in this section is{' '}
-            {feed.maxDiscountSeen}%.
+            The scraper scanned {totalScanned} products across all monitored retailers and found nothing at 50%
+            off or higher.
           </p>
         </div>
       )}
-    </article>
+    </section>
   )
 }
 
