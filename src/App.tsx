@@ -13,12 +13,15 @@ import {
   type SizeKind,
   type SizeStatus,
 } from './catalog'
+import { asketFeed } from './generated/asketFeed'
 import { boxrawFeed } from './generated/boxrawFeed'
 import { corridorFeed } from './generated/corridorFeed'
 import { fahertyFeed } from './generated/fahertyFeed'
 import { nikeFeed } from './generated/nikeFeed'
 import { outerknownFeed } from './generated/outerknownFeed'
 import { patagoniaFeed } from './generated/patagoniaFeed'
+import { percivalFeed } from './generated/percivalFeed'
+import { woolrichFeed } from './generated/woolrichFeed'
 
 type Page = 'browse' | 'product' | 'method' | 'saved'
 type BrowseGradeFilter = 'all' | 'excellent' | 'great' | 'good'
@@ -86,7 +89,17 @@ const defaultFilters: BrowseFilters = {
   discount: '50',
 }
 
-const liveFeeds = [patagoniaFeed, fahertyFeed, outerknownFeed, corridorFeed, nikeFeed, boxrawFeed].sort(
+const liveFeeds = [
+  patagoniaFeed,
+  fahertyFeed,
+  outerknownFeed,
+  corridorFeed,
+  nikeFeed,
+  boxrawFeed,
+  percivalFeed,
+  asketFeed,
+  woolrichFeed,
+].sort(
   (left, right) => {
     const itemGap = right.itemCount - left.itemCount
     if (itemGap !== 0) {
@@ -450,7 +463,10 @@ function LiveInventorySection({ feeds }: { feeds: RetailerFeed[] }) {
         </p>
         <p>
           Listings below are pooled across retailers and sorted by markdown depth, so the deepest discounts
-          surface first regardless of which brand is running them.
+          surface first regardless of which brand is running them. Patagonia still renders sale tiles directly
+          in HTML; Faherty, Outerknown, Corridor, Boxraw, and Percival expose official Shopify collection data;
+          ASKET ships its archive hits inside the page bootstrap; Woolrich hydrates its category wire from public
+          Algolia state; and Nike still comes through its internal sale wall API.
         </p>
         {latestSnapshot ? (
           <p className="brand-wire-note">Latest snapshot: {formatTimestamp(latestSnapshot)}</p>

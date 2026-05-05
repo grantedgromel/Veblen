@@ -14,7 +14,10 @@
     "scrape:outerknown": "node scripts/scrape-outerknown.mjs",
     "scrape:corridor": "node scripts/scrape-corridor.mjs",
     "scrape:boxraw": "node scripts/scrape-boxraw.mjs",
-    "scrape:live": "npm run scrape:nike && npm run scrape:patagonia && npm run scrape:faherty && npm run scrape:outerknown && npm run scrape:corridor && npm run scrape:boxraw"
+    "scrape:percival": "node scripts/scrape-percival.mjs",
+    "scrape:asket": "node scripts/scrape-asket.mjs",
+    "scrape:woolrich": "node scripts/scrape-woolrich.mjs",
+    "scrape:live": "npm run scrape:nike && npm run scrape:patagonia && npm run scrape:faherty && npm run scrape:outerknown && npm run scrape:corridor && npm run scrape:boxraw && npm run scrape:percival && npm run scrape:asket && npm run scrape:woolrich"
   },
   "dependencies": {
     "react": "^19.2.5",
