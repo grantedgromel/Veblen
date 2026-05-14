@@ -1,4 +1,9 @@
-export type Grade = 'excellent' | 'great' | 'good' | 'fair' | 'poor'
+import type { Grade } from './packages/core/grading/grade'
+
+export type { Grade } from './packages/core/grading/grade'
+export { gradeOrder, gradeLabels, gradeDescriptions } from './packages/core/grading/grade'
+export type { RetailerFeed, RetailerFeedItem } from './packages/core/sources/retailerFeed'
+
 export type SizeStatus = 'in' | 'low' | 'out'
 export type SizeKind = 'alpha' | 'neck' | 'waist' | 'us' | 'one'
 
@@ -29,52 +34,6 @@ export interface AlertRule {
   query: string
   matches: number
   last: string
-}
-
-export interface RetailerFeedItem {
-  id: string
-  brand: string
-  title: string
-  subtitle: string
-  price: number
-  originalPrice: number
-  discount: number
-  badge: string | null
-  color: string | null
-  colorCount: number
-  image: string
-  url: string
-}
-
-export interface RetailerFeed {
-  brand: string
-  source: string
-  sourceUrl: string
-  collection: string
-  scrapedAt: string
-  qualifyingThreshold: number
-  totalScanned: number
-  maxDiscountSeen: number
-  itemCount: number
-  items: RetailerFeedItem[]
-}
-
-export const gradeOrder: Grade[] = ['excellent', 'great', 'good', 'fair', 'poor']
-
-export const gradeLabels: Record<Grade, string> = {
-  excellent: 'Excellent',
-  great: 'Great',
-  good: 'Good',
-  fair: 'Fair',
-  poor: 'Poor',
-}
-
-export const gradeDescriptions: Record<Grade, string> = {
-  excellent: 'Top tier',
-  great: 'Recommended',
-  good: 'Acceptable',
-  fair: 'Caveats apply',
-  poor: 'Avoid',
 }
 
 export const catalog: CatalogItem[] = [
